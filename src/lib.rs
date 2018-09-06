@@ -77,3 +77,16 @@ pub use userdata::{AnyUserData, MetaMethod, UserData, UserDataMethods};
 pub use value::{FromLua, FromLuaMulti, MultiValue, Nil, ToLua, ToLuaMulti, Value};
 
 pub mod prelude;
+
+#[cfg(feature = "rlua-derive")]
+#[doc(hidden)]
+pub use table::{FromTable, IntoTable};
+
+#[cfg(feature = "rlua-derive")]
+#[allow(unused_imports)]
+#[macro_use]
+extern crate rlua_derive;
+
+#[cfg(feature = "rlua-derive")]
+#[doc(hidden)]
+pub use rlua_derive::*;
