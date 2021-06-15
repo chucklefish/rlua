@@ -5,8 +5,8 @@ use crate::context::Context;
 use crate::error::{Error, Result};
 use crate::ffi;
 use crate::types::LuaRef;
-use crate::util::{assert_stack, get_userdata, StackGuard};
-use crate::value::{FromLua, FromLuaMulti, ToLua, ToLuaMulti};
+use crate::util::{assert_stack, get_userdata, push_string, StackGuard};
+use crate::value::{FromLua, FromLuaMulti, ToLua, ToLuaMulti, Value};
 
 /// Kinds of metamethods that can be overridden.
 ///
@@ -383,6 +383,24 @@ impl<'lua> AnyUserData<'lua> {
             lua.pop_value()
         };
         V::from_lua(res, lua)
+    }
+
+    /// Returns the given metamethod, if it is set.
+    pub fn get_metamethod(&self, method: MetaMethod) -> Result<Value<'lua>> {
+        let lua = self.0.lua;
+        let metamethod = unsafe {
+            let _sg = StackGuard::new(lua.state);
+            assert_stack(lua.state, 3);
+            lua.push_ref(&self.0);
+            if ffi::lua_getmetatable(lua.state, -1) == 0 {
+                Value::Nil
+            } else {
+                push_string(lua.state, method.name())?;
+                ffi::lua_rawget(lua.state, -2);
+                lua.pop_value()
+            }
+        };
+        Ok(metamethod)
     }
 
     fn inspect<'a, T, R, F>(&'a self, func: F) -> Result<R>
